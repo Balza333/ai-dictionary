@@ -32,6 +32,7 @@ function render() {
     const learned = state.learned.includes(term.id);
     const favorite = state.favorites.includes(term.id);
     const article = document.createElement('article'); article.className = 'card' + (learned ? ' is-learned' : '');
+    article.id = term.id;
     const top = document.createElement('div'); top.className = 'card-top';
     const badge = document.createElement('span'); badge.className = 'badge cat-' + categories.indexOf(term.category); badge.textContent = term.category;
     const star = button(favorite ? '★' : '☆', 'star'); star.setAttribute('aria-label', term.name + 'をお気に入り' + (favorite ? 'から解除' : 'に登録')); star.setAttribute('aria-pressed', favorite); star.dataset.action = 'favorites'; star.dataset.id = term.id;
@@ -43,7 +44,8 @@ function render() {
     const label = document.createElement('span'); label.textContent = '↳  たとえば、こんな使い方';
     const content = document.createElement('p'); content.textContent = term.example; example.append(label, content);
     const check = button((learned ? '☑ 学習済み' : '□ 学習済みにする'), 'learn'); check.setAttribute('aria-label', term.name + (learned ? 'の学習済みを解除' : 'を学習済みにする')); check.setAttribute('aria-pressed', learned); check.dataset.action = 'learned'; check.dataset.id = term.id;
-    article.append(top, title, english, description, example, check); $('cards').append(article);
+    const detail = document.createElement('a'); detail.href = 'detail.html?term=' + encodeURIComponent(term.id); detail.className = 'term-detail-link'; detail.textContent = '詳しく見る →';
+    article.append(top, title, english, description, example, check, detail); $('cards').append(article);
   });
   $('empty').hidden = results.length !== 0;
   $('resultCount').textContent = results.length + ' 件を表示';
