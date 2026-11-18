@@ -1,35 +1,34 @@
 (() => {
   const get = id => document.getElementById(id);
   const audio = get('commuteAudio');
-  const mode = get('commuteMode');
   const rate = get('commuteRate');
   const previous = get('commutePrev');
   const next = get('commuteNext');
   const status = get('commuteStatus');
   const session = navigator.mediaSession;
-  const {chapters, duration} = COMMUTE_AUDIO;
+  const {file, chapters, duration} = COMMUTE_AUDIO;
   const names = chapters.map(chapter => TERMS.find(term => term.id === chapter.id).name);
-  const storageKey = 'ai-dictionary-commute-v1';
-  const media = name => 'commute-media/' + name;
+  const storageKey = 'ai-dictionary-commute-v2';
 
   let saved = {};
   try {saved = JSON.parse(localStorage.getItem(storageKey)) || {};} catch { /* Storage can be blocked. */ }
-  mode.value = saved.mode === 'split' ? 'split' : 'joined';
+  if (!Object.hasOwn(saved, 'rate')) {
+    try {saved.rate = JSON.parse(localStorage.getItem('ai-dictionary-commute-v1'))?.rate;}
+    catch { /* The old speed preference is optional. */ }
+  }
   if ([...rate.options].some(option => option.value === saved.rate)) rate.value = saved.rate;
   const start = Number.isFinite(saved.position) && saved.position >= 0 && saved.position < duration ? saved.position : 0;
-  let track = 0;
   let displayedChapter = -1;
-  let pendingSeek = null;
+  let pendingSeek = start;
   let lastSave = 0;
 
-  const split = () => mode.value === 'split';
-  const chapterAt = time => Math.max(0, chapters.findLastIndex(chapter => chapter.start <= time));
-  const fileTime = () => pendingSeek ?? audio.currentTime;
-  const position = () => Math.min(duration, (split() ? chapters[track].start : 0) + fileTime());
+  // Media time can be rounded slightly below the requested chapter boundary.
+  const chapterAt = time => Math.max(0, chapters.findLastIndex(chapter => chapter.start <= time + 0.001));
+  const position = () => Math.min(duration, pendingSeek ?? audio.currentTime);
 
   function save(at = position()) {
     lastSave = Date.now();
-    try {localStorage.setItem(storageKey, JSON.stringify({position: at, mode: mode.value, rate: rate.value}));}
+    try {localStorage.setItem(storageKey, JSON.stringify({position: at, rate: rate.value}));}
     catch { /* Playback stays available when storage is blocked. */ }
   }
   function applyRate() {
@@ -37,7 +36,7 @@
     audio.playbackRate = Number(rate.value);
   }
   function render() {
-    const index = split() ? track : chapterAt(position());
+    const index = chapterAt(position());
     if (displayedChapter !== index) {
       displayedChapter = index;
       get('commuteTerm').textContent = names[index];
@@ -54,7 +53,7 @@
         session.setPositionState?.({
           duration: audio.duration,
           playbackRate: audio.playbackRate,
-          position: Math.min(audio.duration, fileTime())
+          position: Math.min(audio.duration, position())
         });
       }
     }
@@ -65,23 +64,16 @@
       status.textContent = '再生を開始できませんでした。画面を開いてプレーヤーの再生ボタンを押してください。';
     });
   }
-  function loadAt(at, resume = false) {
-    track = chapterAt(at);
-    const source = media(split() ? chapters[track].file : 'commute-all.mp3');
-    pendingSeek = at - (split() ? chapters[track].start : 0);
-    if (audio.getAttribute('src') !== source) audio.src = source;
-    if (audio.readyState >= 1) applySeek();
-    applyRate();
-    render();
-    if (resume) play();
-  }
   function applySeek() {
     if (pendingSeek === null) return;
     audio.currentTime = Math.min(pendingSeek, audio.duration);
     pendingSeek = null;
   }
   function seek(at) {
-    loadAt(Math.max(0, Math.min(at, duration)), !audio.paused && !audio.ended);
+    if (!Number.isFinite(at)) return;
+    pendingSeek = Math.max(0, Math.min(at, duration));
+    if (audio.readyState >= 1) applySeek();
+    render();
     save();
   }
   function move(delta) {
@@ -91,36 +83,20 @@
 
   previous.addEventListener('click', () => move(-1));
   next.addEventListener('click', () => move(1));
-  let activeMode = mode.value;
-  mode.addEventListener('change', () => {
-    const selected = mode.value;
-    mode.value = activeMode;
-    const at = position();
-    audio.pause();
-    mode.value = activeMode = selected;
-    loadAt(at < duration ? at : 0);
-    save();
-    status.textContent = '再生方式を切り替えました。再生ボタンで続けられます。';
-  });
   rate.addEventListener('change', () => {applyRate(); render(); save();});
   audio.addEventListener('loadedmetadata', () => {applySeek(); applyRate(); render();});
   audio.addEventListener('play', () => {status.textContent = ''; render();});
   audio.addEventListener('pause', () => {if (!audio.ended) save(); render();});
-  audio.addEventListener('seeked', () => {save(); render();});
+  audio.addEventListener('seeked', () => {save(audio.ended ? 0 : position()); render();});
   audio.addEventListener('timeupdate', () => {
     if (!audio.paused && Date.now() - lastSave >= 1000) save();
     render();
   });
   audio.addEventListener('ended', () => {
     if (!audio.ended) return;
-    if (split() && track < chapters.length - 1) {
-      loadAt(chapters[track + 1].start, true);
-      save();
-    } else {
-      save(0);
-      render();
-      status.textContent = '3語の再生が終わりました。';
-    }
+    save(0);
+    render();
+    status.textContent = chapters.length + '語の再生が終わりました。';
   });
   audio.addEventListener('error', () => {status.textContent = '音声ファイルを読み込めませんでした。';});
   function saveOnLeave() {save(audio.ended ? 0 : position());}
@@ -132,7 +108,7 @@
       pause: () => audio.pause(),
       previoustrack: () => move(-1),
       nexttrack: () => move(1),
-      seekto: ({seekTime}) => seek((split() ? chapters[track].start : 0) + seekTime),
+      seekto: ({seekTime}) => seek(seekTime),
       seekbackward: ({seekOffset = 10}) => seek(position() - seekOffset),
       seekforward: ({seekOffset = 10}) => seek(position() + seekOffset)
     };
@@ -140,5 +116,7 @@
       try {session.setActionHandler(action, handler);} catch { /* Individual actions vary by browser. */ }
     }
   }
-  loadAt(start);
+  audio.src = 'commute-media/' + file;
+  applyRate();
+  render();
 })();
