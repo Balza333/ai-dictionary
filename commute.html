@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b101b">
+  <title>通勤モードの技術検証 | AI技術辞典</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="audio.css">
+  <script src="terms.js" defer></script>
+  <script src="commute-media/chapters.js" defer></script>
+  <script src="commute.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="index.html"><span class="logo">AI✦</span><span>AI技術辞典</span></a><a class="back-link" href="audio.html">← 音声学習へ</a></header>
+  <main class="audio-main">
+    <h1>通勤モード</h1>
+    <p class="audio-lead">技術検証用の3語です。再生を始めてから画面をロックし、音が続くか確認してください。</p>
+    <section class="audio-player" aria-labelledby="commuteTerm">
+      <p id="commutePosition"></p>
+      <h2 id="commuteTerm">再生する用語</h2>
+      <audio id="commuteAudio" controls preload="metadata" style="width: 100%" aria-label="通勤モードの音声"></audio>
+      <div class="audio-transport">
+        <button type="button" id="commutePrev">前の用語</button>
+        <button type="button" id="commuteNext">次の用語</button>
+      </div>
+      <p id="commuteStatus" role="status"></p>
+    </section>
+    <section class="audio-settings" aria-labelledby="commuteSettings">
+      <h2 id="commuteSettings">再生設定</h2>
+      <div class="audio-fields">
+        <label for="commuteMode">再生方式
+          <select id="commuteMode"><option value="joined">連結MP3（3語を1ファイルで再生）</option><option value="split">分割MP3（用語ごとに切り替え）</option></select>
+        </label>
+        <label for="commuteRate">再生速度
+          <select id="commuteRate"><option value="0.75">0.75倍</option><option value="1" selected>1倍</option><option value="1.25">1.25倍</option><option value="1.5">1.5倍</option><option value="2">2倍</option></select>
+        </label>
+      </div>
+      <p class="audio-help">再生方式を切り替えると一時停止します。再生位置は同じブラウザに保存されます。ロック画面の操作は端末とブラウザによって異なります。</p>
+    </section>
+    <p class="audio-help">音声合成 Open JTalk / HTS Voice “Mei (Normal)” © 2009–2013 Nagoya Institute of Technology (MMDAgent Project Team), <a href="https://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a></p>
+  </main>
+</body>
+</html>
