@@ -4,7 +4,14 @@ const AI_DICTIONARY_MATERIAL = {
   title: 'AI技術辞典',
   defaultMapTermId: 'term-13',
   defaultDetailMode: 'full',
-  commute: {manifest: () => COMMUTE_AUDIO},
+  commute: {manifest: () => ({
+    materialId: 'ai-dictionary',
+    sources: [{
+      id: 'all', version: COMMUTE_AUDIO.version ?? COMMUTE_PLAN.aiVersion, chapterIds: [],
+      file: COMMUTE_AUDIO.file, duration: COMMUTE_AUDIO.duration,
+      cues: COMMUTE_AUDIO.chapters.map(({id, start}) => ({termId: id, start}))
+    }]
+  })},
   categories: ['AIモデル', 'AI開発', 'AIエージェント', 'AI連携', 'AIの基礎'],
   // 章は教材の学習順や範囲、カテゴリは用語の分類に使います。
   chapters: [],

@@ -12,6 +12,8 @@
   <script src="state.js" defer></script>
   <script src="terms.js" defer></script>
   <script src="commute-media/chapters.js" defer></script>
+  <script src="commute-media/it-passport.js" defer></script>
+  <script src="commute-plan.js" defer></script>
   <script src="commute.js" defer></script>
 </head>
 <body>
@@ -21,10 +23,13 @@
     <p id="commuteIntro" class="audio-lead"></p>
     <div id="commuteContent" hidden>
     <section class="audio-player" aria-labelledby="commuteTerm">
+      <p id="commuteChapter" class="audio-help"></p>
+      <p id="commuteActive" class="audio-help"></p>
       <p id="commutePosition"></p>
       <h2 id="commuteTerm">再生する用語</h2>
+      <p id="commuteRemaining" class="audio-help"></p>
       <audio id="commuteAudio" controls preload="metadata" style="width: 100%" aria-label="通勤モードの音声"></audio>
-      <div class="audio-transport">
+      <div id="commuteNavigation" class="audio-transport">
         <button type="button" id="commutePrev">前の用語</button>
         <button type="button" id="commuteNext">次の用語</button>
       </div>
@@ -32,12 +37,29 @@
     </section>
     <section class="audio-settings" aria-labelledby="commuteSettings">
       <h2 id="commuteSettings">再生設定</h2>
+      <fieldset id="commuteScope" class="commute-scope" hidden>
+        <legend>学習する章</legend>
+        <div class="audio-transport"><button id="commuteSelectAll" type="button">全選択</button><button id="commuteClearAll" type="button">全解除</button></div>
+        <div id="commuteChapters"></div>
+      </fieldset>
       <div class="audio-fields">
+        <label for="commuteOrder" id="commuteOrderField">再生順序
+          <select id="commuteOrder"><option value="ordered">章の順番どおり</option><option value="random">章をランダムに</option></select>
+        </label>
         <label for="commuteRate">再生速度
           <select id="commuteRate"><option value="0.75">0.75倍</option><option value="1" selected>1倍</option><option value="1.25">1.25倍</option><option value="1.5">1.5倍</option><option value="2">2倍</option></select>
         </label>
+        <label for="commuteRepeat">リピート
+          <select id="commuteRepeat"><option value="once">1周で終了</option><option value="repeat">学習範囲を繰り返す</option></select>
+        </label>
       </div>
-      <p class="audio-help">再生位置と速度は同じブラウザに保存されます。ロック画面の操作は端末とブラウザによって異なります。</p>
+      <p id="commuteEstimate" class="audio-help" aria-live="polite"></p>
+      <div class="audio-transport commute-start">
+        <button id="commuteContinue" type="button" class="quiz-primary">続きから再開</button>
+        <button id="commuteStart" type="button">選択範囲を最初から再生</button>
+      </div>
+      <p class="audio-help">章・順序・リピートの変更は「選択範囲を最初から再生」で適用します。速度はすぐ反映されます。</p>
+      <p id="commuteSwitchNote" class="audio-help" hidden>単一MP3で再生できない範囲やランダム順では、画面ロック中にファイル切り替えで止まる場合があります。</p>
     </section>
     <p class="audio-help">AivisSpeech: コハク（ノーマル・非公式の合成音声） ／ <a href="https://hub.aivis-project.com/aivm-models/22e8ed77-94fe-4ef2-871f-a86f94e9a579">モデル v1.1.0</a> ／ <a href="https://github.com/Aivis-Project/ACML/blob/master/ACML-1.0.md">ACML 1.0</a></p>
     </div>

@@ -31,6 +31,15 @@ const IT_PASSPORT_MATERIAL = (() => {
   const terms = groups.flatMap((rows, index) => rows.map(([id, name, english, translation, definition, example]) => ({
     id, name, english, translation, definition, example, category: categories[index], chapterId: chapters[index].id
   })));
+  const spokenNames = {
+    kpi: 'ケーピーアイ', kgi: 'ケージーアイ', csf: 'シーエスエフ', swot: 'スウォット分析',
+    pdca: 'ピーディーシーエー', wbs: 'ダブリュービーエス', qcd: 'キューシーディー',
+    confidentiality: 'きみつせい', integrity: 'かんぜんせい', availability: 'かようせい',
+    mfa: 'たようそにんしょう'
+  };
+  for (const term of terms) {
+    if (spokenNames[term.id]) term.narration = {name: spokenNames[term.id]};
+  }
   Object.assign(terms[0], {
     abbreviation: 'KPI', reading: 'ケーピーアイ',
     wordParts: [['Key', '重要な'], ['Performance', '業績・成果'], ['Indicator', '指標']],
@@ -57,6 +66,7 @@ const IT_PASSPORT_MATERIAL = (() => {
   ].map(([a, b, kind, label]) => ({a, b, kind, label, basis: [a, b]}));
   return {
     id: 'it-passport', title: 'ITパスポート', categories, chapters, terms, relations,
+    commute: {manifest: () => IT_PASSPORT_AUDIO},
     updatedAt: '2026-11-19',
     sources: [
       {label: 'IPA ITパスポート試験シラバス Ver.6.5', url: 'https://www.ipa.go.jp/shiken/syllabus/omgdg50000005kn1-att/syllabus_ip_ver6_5.pdf'},
