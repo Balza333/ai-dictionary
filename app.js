@@ -1,5 +1,5 @@
 const STORAGE_KEY = 'ai-dictionary-progress-v1';
-const categories = ['すべて', 'AIモデル', 'AI開発', 'AIエージェント', 'AI連携', 'AIの基礎'];
+const categories = ['すべて', ...MATERIAL.categories];
 let state = {favorites: [], learned: []};
 let category = 'すべて';
 let view = 'all';

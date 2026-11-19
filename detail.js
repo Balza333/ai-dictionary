@@ -1,7 +1,8 @@
 (() => {
   const get = id => document.getElementById(id);
-  const id = new URLSearchParams(location.search).get('term');
-  const term = TERMS.find(item => item.id === id);
+  const params = new URLSearchParams(location.search);
+  const id = params.get('term');
+  const term = getMaterialTerm(params.get('material') ?? MATERIAL.id, id);
   if (!term) {
     get('detailName').textContent = '用語が見つかりません';
     get('detailDescription').textContent = '辞典に戻って用語を選んでください。';
