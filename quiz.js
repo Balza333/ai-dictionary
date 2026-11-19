@@ -18,10 +18,19 @@
     return copy;
   }
 
+  const eligible = TERMS.filter(term => termDefinition(term));
+  const count = Math.min(QUESTION_COUNT, eligible.length);
+  get('quizSummary').textContent = eligible.length
+    ? '全' + eligible.length + '語からランダムに' + count + '問。説明に合う用語を選んでみましょう。'
+    : '出題できる用語がありません。';
+  get('quizStart').disabled = count === 0;
+  if (count) get('quizStart').textContent = count + '問に挑戦する →';
+
   function start() {
-    questions = shuffle(TERMS).slice(0, QUESTION_COUNT).map(term => ({
+    if (!count) return;
+    questions = shuffle(eligible).slice(0, QUESTION_COUNT).map(term => ({
       term,
-      options: shuffle([term, ...shuffle(TERMS.filter(other => other.id !== term.id)).slice(0, 3)])
+      options: shuffle([term, ...shuffle(eligible.filter(other => other.id !== term.id)).slice(0, 3)])
     }));
     current = 0;
     score = 0;
@@ -38,7 +47,7 @@
     const question = questions[current];
     get('quizCounter').textContent = '第 ' + (current + 1) + ' 問 / ' + questions.length + ' 問';
     get('quizProgress').style.width = current / questions.length * 100 + '%';
-    get('quizDescription').textContent = question.term.description;
+    get('quizDescription').textContent = termDefinition(question.term);
     get('quizOptions').replaceChildren();
     get('quizFeedback').hidden = true;
     get('quizVerdict').textContent = '';
@@ -76,7 +85,7 @@
       }
       const description = document.createElement('span');
       description.className = 'quiz-option-description';
-      description.textContent = term.description;
+      description.textContent = termDefinition(term);
       option.append(description);
     });
     get('quizFeedback').className = 'quiz-feedback ' + (correct ? 'correct' : 'incorrect');

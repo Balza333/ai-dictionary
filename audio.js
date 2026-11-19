@@ -3,6 +3,9 @@
   const get = id => document.getElementById(id);
   const supported = 'speechSynthesis' in window && typeof window.SpeechSynthesisUtterance === 'function';
   const synth = supported ? window.speechSynthesis : null;
+  const examplesSetting = get('audioExamples');
+  try {examplesSetting.value = LEARNING_STORAGE.read(MATERIAL.id, 'examples') === 'on' ? 'on' : 'off';}
+  catch {examplesSetting.value = 'off';}
   let voices = [], queue = [], index = 0, steps = [], step = 0, voiceChosen = false;
   let state = 'idle', generation = 0, utterance = null, timer = null;
   let waitRemaining = null, waitDeadline = 0;
@@ -40,14 +43,16 @@
   function buildSteps() {
     const term = current(); if (!term) return [];
     const speech = (text, label) => ({kind: 'speech', text, label});
-    const explanation = sentences(term.description).map(text => speech(text, '解説'));
+    const explanation = sentences(termDefinition(term) ?? '').map(text => speech(text, '解説'));
     const result = quiz() ? [
       speech('第' + (index + 1) + '問。説明を聞いて、用語を考えてください。', '出題'), ...explanation,
       speech(get('audioWait').value + '秒、考えてみましょう。', '考える準備'),
       {kind: 'wait', ms: Number(get('audioWait').value) * 1000, label: '考える時間'},
       {...speech('正解は、' + term.name + 'です。', '正解'), reveal: true}
-    ] : [speech('第' + (index + 1) + '語。' + term.name + '。', '用語'), ...explanation,
-      ...sentences('使用例。' + term.example).map(text => speech(text, '使用例'))];
+    ] : [speech('第' + (index + 1) + '語。' + term.name + '。', '用語'), ...explanation];
+    if (examplesSetting.value === 'on' && term.example) {
+      result.push(...sentences('使用例。' + term.example).map(text => speech(text, '使用例')));
+    }
     if (index === queue.length - 1) result.push(speech('今回の' + queue.length + '語の学習は終わりです。', '終了の案内'));
     return result;
   }
@@ -58,7 +63,7 @@
     get('audioPhase').textContent = playing() || state === 'paused' ? (stage?.label || '準備') : '';
     get('audioTerm').textContent = term ? (revealed ? term.name : 'この説明の用語は？') : '対象の用語がありません';
     get('audioDetail').hidden = !term || !revealed;
-    if (term) get('audioDetail').href = 'detail.html?term=' + encodeURIComponent(term.id);
+    if (term) get('audioDetail').href = materialHref('detail.html', term.id);
     get('audioPlay').textContent = state === 'completed' ? '↻ もう一度再生' : '▶ 再生';
     const canSpeak = supported && voices.length > 0 && queue.length > 0;
     get('audioPlay').disabled = !canSpeak || playing() || state === 'paused';
@@ -177,6 +182,12 @@
   for (const id of ['audioMode', 'audioCategory', 'audioCount', 'audioOrder', 'audioWait']) {
     get(id).addEventListener('change', () => resetQueue('設定を変更しました。「再生」で先頭から始めます。'));
   }
+  examplesSetting.addEventListener('change', () => {
+    let message = '設定を変更しました。「再生」で先頭から始めます。';
+    try {LEARNING_STORAGE.write(MATERIAL.id, 'examples', examplesSetting.value);}
+    catch {message = '使用例の設定を保存できませんでした。この画面では変更が適用されます。「再生」で先頭から始めます。';}
+    resetQueue(message);
+  });
   get('audioReloadVoices').addEventListener('click', loadVoices);
   get('audioVoice').addEventListener('change', () => {voiceChosen = true;});
   document.addEventListener('visibilitychange', () => {if (document.hidden) pause('画面が隠れたため一時停止しました。戻って「再開」を押してください。');});

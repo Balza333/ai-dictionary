@@ -2,6 +2,9 @@
 const AI_DICTIONARY_MATERIAL = {
   id: 'ai-dictionary',
   title: 'AI技術辞典',
+  defaultMapTermId: 'term-13',
+  defaultDetailMode: 'full',
+  commute: {manifest: () => COMMUTE_AUDIO},
   categories: ['AIモデル', 'AI開発', 'AIエージェント', 'AI連携', 'AIの基礎'],
   // 章は教材の学習順や範囲、カテゴリは用語の分類に使います。
   chapters: [],

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 226" role="img" aria-labelledby="title">
+  <title id="title">年間売上のKGIと、月間商談件数・契約率のKPI</title>
+  <rect width="560" height="226" rx="16" fill="#101b29"/>
+  <path d="M140 139v-28h280v28 M280 111V84" fill="none" stroke="#72dfcc" stroke-width="3"/>
+  <g fill="#18343a" stroke="#72dfcc">
+    <rect x="160" y="18" width="240" height="66" rx="12"/>
+    <rect x="20" y="139" width="240" height="66" rx="12"/>
+    <rect x="300" y="139" width="240" height="66" rx="12"/>
+  </g>
+  <g fill="#eef7ff" font-family="sans-serif" font-size="20" text-anchor="middle">
+    <text x="280" y="58">KGI：年間売上</text>
+    <text x="140" y="179">KPI：月間商談件数</text>
+    <text x="420" y="179">KPI：契約率</text>
+  </g>
+</svg>

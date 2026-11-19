@@ -1,7 +1,15 @@
 (() => {
   const get = id => document.getElementById(id);
   const terms = new Map(TERMS.map(term => [term.id, term]));
-  const palette = {'AIモデル': '#a5bfff', 'AI開発': '#c1b0fa', 'AIエージェント': '#ffcca2', 'AI連携': '#79ddcf', 'AIの基礎': '#e6c3e9'};
+  if (!terms.size) {
+    get('mapCount').textContent = '表示できる用語がありません。';
+    return;
+  }
+  const colors = ['#a5bfff', '#c1b0fa', '#ffcca2', '#79ddcf', '#e6c3e9'];
+  const categories = [...new Set([...MATERIAL.categories, ...TERMS.map(term => term.category)])];
+  const palette = Object.fromEntries(categories.map((category, index) => [category, colors[index % colors.length]]));
+  const initialTerm = terms.has(MATERIAL.defaultMapTermId) ? MATERIAL.defaultMapTermId : TERMS[0].id;
+  get('mapReset').textContent = terms.get(initialTerm).name + 'に戻す';
   const pairs = new Set();
   TERM_RELATIONS.forEach(edge => {
     const key = [edge.a, edge.b].sort().join('/');
@@ -10,7 +18,7 @@
     pairs.add(key);
   });
   let selected = new URLSearchParams(location.search).get('term');
-  if (!terms.has(selected)) selected = 'term-13';
+  if (!terms.has(selected)) selected = initialTerm;
   let mode = 'local', scale = 1, offsetX = 0, offsetY = 0, worldWidth = 1, worldHeight = 1;
   let activeEdge = null, edgeElements = [], dragging = null, selectedPosition = null;
   const viewport = get('mapViewport');
@@ -57,7 +65,7 @@
     get('mapEdgeTerms').replaceChildren();
     for (const id of [edge.a, edge.b]) {
       const link = document.createElement('a'); link.className = 'back-link';
-      link.href = 'detail.html?term=' + encodeURIComponent(id); link.textContent = terms.get(id).name + 'の詳細 →';
+      link.href = materialHref('detail.html', id); link.textContent = terms.get(id).name + 'の詳細 →';
       get('mapEdgeTerms').append(link);
     }
     get('mapStatus').textContent = get('mapEdgeTitle').textContent + 'の関係：' + edge.label;
@@ -72,10 +80,14 @@
     get('mapNodes').replaceChildren(); get('mapLines').replaceChildren(); get('mapRelations').replaceChildren();
     get('mapEdgeInfo').hidden = true; activeEdge = null; edgeElements = [];
     if (mode === 'overview') {
-      worldWidth = 2160; worldHeight = 1240;
-      // カテゴリ内は固定の格子。追加時もノードを重ねず、毎回同じ位置に表示します。
-      const clusters = {'AIモデル': [70, 60], 'AI連携': [790, 60], 'AIエージェント': [1510, 60], 'AI開発': [1510, 700], 'AIの基礎': [70, 700]};
-      for (const [category, [x, y]] of Object.entries(clusters)) {
+      const columns = Math.min(3, categories.length);
+      const rowHeight = Math.max(350, ...categories.map(category =>
+        180 + Math.ceil(TERMS.filter(term => term.category === category).length / 3) * 130));
+      worldWidth = columns * 720;
+      worldHeight = Math.ceil(categories.length / columns) * rowHeight;
+      for (const [index, category] of categories.entries()) {
+        const x = 50 + (index % columns) * 720;
+        const y = 45 + Math.floor(index / columns) * rowHeight;
         const heading = document.createElement('div'); heading.className = 'map-cluster'; heading.textContent = category;
         heading.style.left = x + 'px'; heading.style.top = y + 'px'; heading.style.color = palette[category]; get('mapNodes').append(heading);
         TERMS.filter(t => t.category === category).forEach((t, index) => {
@@ -138,8 +150,8 @@
       const li = document.createElement('li'); li.textContent = '説明できる関係がまだ登録されていない用語です。'; get('mapRelations').append(li);
     }
     get('mapSelect').value = selected; get('mapCategory').textContent = term.category; get('mapTermName').textContent = term.name;
-    get('mapEnglish').textContent = term.english; get('mapDescription').textContent = term.description;
-    get('mapDetail').href = 'detail.html?term=' + encodeURIComponent(selected);
+    get('mapEnglish').textContent = term.english ?? ''; get('mapDescription').textContent = termDefinition(term) ?? '';
+    get('mapDetail').href = materialHref('detail.html', selected);
     get('mapOverview').setAttribute('aria-pressed', String(mode === 'overview'));
     get('mapLocal').setAttribute('aria-pressed', String(mode === 'local'));
     get('mapCount').textContent = ids.size + '語・' + displayedEdges.length + '本の関係線';
@@ -149,7 +161,7 @@
     if (focus) get('mapTermName').focus({preventScroll: true});
   }
   get('mapSelect').addEventListener('change', () => {selected = get('mapSelect').value; render();});
-  get('mapReset').addEventListener('click', () => {selected = 'term-13'; mode = 'local'; render(true);});
+  get('mapReset').addEventListener('click', () => {selected = initialTerm; mode = 'local'; render(true);});
   get('mapOverview').addEventListener('click', () => {mode = 'overview'; render();});
   get('mapLocal').addEventListener('click', () => {mode = 'local'; render();});
   get('mapZoomIn').addEventListener('click', () => zoom(1.25)); get('mapZoomOut').addEventListener('click', () => zoom(0.8));

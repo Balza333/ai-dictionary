@@ -7,19 +7,22 @@
   <title>AI技術辞典 — 知るほど、未来が近くなる。</title>
   <link rel="stylesheet" href="style.css">
   <script src="materials/ai-dictionary.js" defer></script>
+  <script src="materials/catalog.js" defer></script>
+  <script src="state.js" defer></script>
   <script src="terms.js" defer></script>
   <script src="app.js" defer></script>
   <script src="quiz.js" defer></script>
 </head>
 <body>
-  <header class="topbar"><a class="brand" href="index.html"><span class="logo">AI<span>✦</span></span><span>AI技術辞典<small>YOUR FIRST AI FIELD GUIDE</small></span></a><span class="offline"><i></i> オフラインで学べる</span></header>
+  <header class="topbar"><a class="brand" href="index.html" data-material-page="index.html"><span class="logo">AI<span>✦</span></span><span data-material-title>AI技術辞典</span></a><span class="offline"><i></i> オフラインで学べる</span></header>
   <main>
-    <section class="hero"><div class="eyebrow">EXPLORE THE LANGUAGE OF AI</div><h1>知るほど、<br class="mobile">未来が<span>近くなる。</span></h1><p>SNSで見かけた、あの言葉。<br>やさしい説明と身近な例で、AIの世界をひとつずつ。</p><div class="orbit" aria-hidden="true"><div>✦</div><span class="orb one">LLM</span><span class="orb two">RAG</span><span class="orb three">MCP</span></div></section>
+    <section class="learning-home"><h1>学習ホーム</h1><label class="sr-only" for="materialSelect">教材</label><select id="materialSelect"></select></section>
+    <a class="map-entry commute-entry" href="commute.html" data-material-page="commute.html"><span><strong>通勤モード</strong><small><span id="commuteSummary"></span></small></span><span aria-hidden="true">▶</span></a>
+    <nav class="home-links" aria-label="学習機能"><a href="#dictionary">辞典</a><a href="#quiz">4択クイズ</a><a href="map.html" data-material-page="map.html">関連マップ</a></nav>
+    <a class="map-entry" href="audio.html" data-material-page="audio.html"><span><strong>音声で学ぶ</strong><small>聞き流し・音声クイズで、耳から学習しよう</small></span><span aria-hidden="true">♫</span></a>
     <section class="progress-panel" aria-label="学習の進み具合"><div class="progress-icon" aria-hidden="true">↗</div><div class="progress-copy"><strong>あなたの学びの軌跡</strong><span id="progressText"></span></div><div class="progress-right"><span><b id="progressNumber">0</b><small>%</small></span><div class="track"><div id="progressBar"></div></div></div></section>
-    <a class="map-entry commute-entry" href="commute.html"><span><strong>通勤モード</strong><small>コハクの音声で、全38語の解説を聞く</small></span><span aria-hidden="true">▶</span></a>
-    <a class="map-entry" href="audio.html"><span><strong>音声で学ぶ</strong><small>聞き流し・音声クイズで、耳から学習しよう</small></span><span aria-hidden="true">♫</span></a>
-    <section class="quiz" aria-labelledby="quizHeading">
-      <div id="quizIntro" class="quiz-intro"><div><div class="eyebrow">QUIZ CHALLENGE</div><h2 id="quizHeading">4択クイズで、理解を深めよう。</h2><p>全38語からランダムに10問。説明に合う用語を選んでみましょう。</p></div><button id="quizStart" class="quiz-primary" type="button">10問に挑戦する →</button></div>
+    <section id="quiz" class="quiz" aria-labelledby="quizHeading">
+      <div id="quizIntro" class="quiz-intro"><div><div class="eyebrow">QUIZ CHALLENGE</div><h2 id="quizHeading">4択クイズで、理解を深めよう。</h2><p><span id="quizSummary"></span></p></div><button id="quizStart" class="quiz-primary" type="button">クイズに挑戦する →</button></div>
       <div id="quizPlay" hidden>
         <div class="quiz-toolbar"><span id="quizCounter"></span><button id="quizExit" class="quiz-secondary" type="button">辞典に戻る</button></div>
         <div class="track" aria-hidden="true"><div id="quizProgress"></div></div>
@@ -30,21 +33,20 @@
         <button id="quizNext" class="quiz-primary quiz-next" type="button" hidden>次の問題へ →</button>
       </div>
       <div id="quizResult" class="quiz-result" hidden>
-        <div class="eyebrow">CHALLENGE COMPLETE</div><h2 id="quizResultHeading" tabindex="-1">10問おつかれさまでした！</h2>
+        <div class="eyebrow">CHALLENGE COMPLETE</div><h2 id="quizResultHeading" tabindex="-1">おつかれさまでした！</h2>
         <p class="quiz-score">正答率 <strong id="quizAccuracy"></strong></p><p id="quizScoreText"></p>
         <div class="quiz-result-actions"><button id="quizRetry" class="quiz-primary" type="button">もう一度挑戦する ↻</button><button id="quizReturn" class="quiz-secondary" type="button">辞典に戻る</button></div>
       </div>
     </section>
     <section id="dictionary" class="library" aria-label="用語を探す">
-      <a class="map-entry" href="map.html"><span><strong>関連用語マップ</strong><small>38語のつながりを、全体図と周辺図で見てみよう</small></span><span aria-hidden="true">↗</span></a>
       <div class="section-heading"><h2>ことばを探す<span>DICTIONARY</span></h2><span id="totalCount"></span></div>
-      <div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="用語・説明・使用例から検索（例：API、画像）" aria-label="用語・説明・使用例を検索"><kbd aria-hidden="true">検索</kbd></div>
+      <div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="用語・説明・使用例から検索" aria-label="用語・説明・使用例を検索"><kbd aria-hidden="true">検索</kbd></div>
       <div id="categories" class="categories" role="group" aria-label="カテゴリ"></div>
       <div class="result-bar"><div class="views" role="group" aria-label="表示する用語"><button data-view="all" aria-pressed="true">すべて</button><button data-view="favorites" aria-pressed="false">☆ お気に入り <span id="favCount">0</span></button><button data-view="learned" aria-pressed="false">✓ 学習済み <span id="learnedCount">0</span></button></div><span id="resultCount" role="status" aria-live="polite"></span></div>
       <div id="cards" class="cards"></div><div id="empty" class="empty" hidden><span>⌕</span><h3>該当する用語がありません</h3><p>検索する言葉や絞り込みを変えてみましょう。</p><button id="reset">絞り込みをリセット</button></div>
     </section>
     <p id="storageWarning" class="warning" role="status" hidden>このブラウザでは保存できません。現在の画面では操作できますが、閉じると学習状況が失われます。</p>
   </main>
-  <footer><span class="footer-brand">AI✦ <b>AI技術辞典</b></span><p>小さな「わかった」が、次の一歩になる。</p><small>お気に入りと学習状況は、このブラウザに保存されます。</small></footer>
+  <footer><span class="footer-brand">AI✦ <b data-material-title>AI技術辞典</b></span><p>小さな「わかった」が、次の一歩になる。</p><small>お気に入りと学習状況は、このブラウザに保存されます。</small></footer>
 </body>
 </html>

@@ -1,21 +1,22 @@
 (() => {
   const get = id => document.getElementById(id);
+  const manifest = MATERIAL.commute?.manifest();
+  if (!manifest) {
+    get('commuteIntro').textContent = MATERIAL.title + 'の通勤用音声は準備中です。通常の音声学習を利用できます。';
+    return;
+  }
+  get('commuteContent').hidden = false;
+  get('commuteIntro').textContent = '全' + manifest.chapters.length + '語の用語名と解説を、1本の音声で聞けます。画面をロックする前に再生を始めてください。';
   const audio = get('commuteAudio');
   const rate = get('commuteRate');
   const previous = get('commutePrev');
   const next = get('commuteNext');
   const status = get('commuteStatus');
   const session = navigator.mediaSession;
-  const {file, chapters, duration} = COMMUTE_AUDIO;
+  const {file, chapters, duration} = manifest;
   const names = chapters.map(chapter => TERMS.find(term => term.id === chapter.id).name);
-  const storageKey = 'ai-dictionary-commute-v2';
-
   let saved = {};
-  try {saved = JSON.parse(localStorage.getItem(storageKey)) || {};} catch { /* Storage can be blocked. */ }
-  if (!Object.hasOwn(saved, 'rate')) {
-    try {saved.rate = JSON.parse(localStorage.getItem('ai-dictionary-commute-v1'))?.rate;}
-    catch { /* The old speed preference is optional. */ }
-  }
+  try {saved = LEARNING_STORAGE.read(MATERIAL.id, 'commute') || {};} catch { /* Storage can be blocked. */ }
   if ([...rate.options].some(option => option.value === saved.rate)) rate.value = saved.rate;
   const start = Number.isFinite(saved.position) && saved.position >= 0 && saved.position < duration ? saved.position : 0;
   let displayedChapter = -1;
@@ -28,7 +29,7 @@
 
   function save(at = position()) {
     lastSave = Date.now();
-    try {localStorage.setItem(storageKey, JSON.stringify({position: at, rate: rate.value}));}
+    try {LEARNING_STORAGE.write(MATERIAL.id, 'commute', {position: at, rate: rate.value});}
     catch { /* Playback stays available when storage is blocked. */ }
   }
   function applyRate() {
