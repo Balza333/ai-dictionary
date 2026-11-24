@@ -10,6 +10,12 @@
   document.title = term.name + ' | ' + MATERIAL.title;
   get('detailName').textContent = term.name;
   get('detailDescription').textContent = termDefinition(term) ?? '';
+  if (term.syllabusNote) {
+    const note = document.createElement('p');
+    note.className = 'map-note';
+    note.textContent = term.syllabusNote;
+    get('detailDescription').after(note);
+  }
   const translation = get('detailTranslation');
   translation.hidden = !term.translation;
   translation.textContent = term.translation ?? '';

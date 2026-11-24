@@ -26,11 +26,22 @@
   get('quizStart').disabled = count === 0;
   if (count) get('quizStart').textContent = count + '問に挑戦する →';
 
+  function choicesFor(term) {
+    const others = shuffle(eligible.filter(other => other.id !== term.id));
+    if (MATERIAL.quiz?.prioritizeRelated) {
+      const related = new Set((MATERIAL.relations ?? []).flatMap(edge =>
+        edge.a === term.id ? [edge.b] : edge.b === term.id ? [edge.a] : []));
+      const priority = other => related.has(other.id) ? 0 : other.chapterId === term.chapterId ? 1 : 2;
+      others.sort((a, b) => priority(a) - priority(b));
+    }
+    return shuffle([term, ...others.slice(0, 3)]);
+  }
+
   function start() {
     if (!count) return;
     questions = shuffle(eligible).slice(0, QUESTION_COUNT).map(term => ({
       term,
-      options: shuffle([term, ...shuffle(eligible.filter(other => other.id !== term.id)).slice(0, 3)])
+      options: choicesFor(term)
     }));
     current = 0;
     score = 0;

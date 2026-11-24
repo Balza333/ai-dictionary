@@ -176,7 +176,9 @@
       return;
     }
     pendingSeek = position;
-    const src = 'commute-media/' + asset.file;
+    // Keep cached MP3 bytes in sync with new cue tables on static hosts.
+    const revision = location.protocol !== 'file:' && /^[a-f0-9]{64}$/.test(asset.version) ? '?v=' + asset.version : '';
+    const src = 'commute-media/' + asset.file + revision;
     if (audio.getAttribute('src') !== src) {
       loading = true;
       audio.src = src;
